@@ -17,8 +17,7 @@ import org.mockito.Spy;
 
 import java.util.*;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 //@RunWith(Parameterized.class)
@@ -44,17 +43,6 @@ public class LibraryJUnitAndMockitoTests {
     }
 
     public static @NotNull
-    Collection<Book> dataForTest() {
-        return new ArrayList<Book>() {
-            {
-                add(new Book(new Author("A0"), "Book0"));
-                add(new Book(new Author("A1"), "Book1"));
-                add(new Book(new Author("A2"), "Book2"));
-
-            }
-        };
-    }
-    public static @NotNull
     Collection<Book> data1ForTest() {
         return new ArrayList<Book>() {
             {
@@ -66,7 +54,22 @@ public class LibraryJUnitAndMockitoTests {
         };
     }
     public static @NotNull
-    Collection<Book> dataWithNulls() {
+    List<Book> dataForTest() {
+        Book[] b = {new Book(new Author("A0"), "Book0"),
+                new Book(new Author("A1"), "Book1"),
+                new Book(new Author("A2"), "Book2")};
+        return List.of(b);
+    }
+    public static @NotNull
+    List<Book> dataWithNulls() {
+        Book[] b = {new Book(new Author("A0"), "Book0"),
+                new Book(new Author("A1"), "Book1"),
+                new Book(new Author("A2"), "Book2"),
+                null,
+                null};
+        return Arrays.asList(b);
+    }
+    /*Collection<Book> dataWithNulls() {
         return new ArrayList<Book>() {
             {
                 add(new Book(new Author("A0"), "Book0"));
@@ -76,7 +79,7 @@ public class LibraryJUnitAndMockitoTests {
                 add(null);
             }
         };
-    }
+    }*/
 
     public static @NotNull
     Collection<Book> dataWithEmptyCell() {
@@ -123,7 +126,7 @@ public class LibraryJUnitAndMockitoTests {
 
         lib.setBooks(booksFactory.books());
 
-        assertThat(lib.getBooks(), contains(dataWithNulls()));
+        assertThat(lib.getBooks(), arrayContaining(dataWithNulls()));
     }
 
 
