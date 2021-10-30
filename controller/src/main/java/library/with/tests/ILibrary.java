@@ -1,19 +1,14 @@
 package library.with.tests;
 
-import com.google.inject.Inject;
-import lombok.Data;
-import org.checkerframework.checker.units.qual.A;
-import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.NoSuchElementException;
 
 public interface ILibrary {
     Book getBook(@NotNull int cellNumber) throws NoSuchElementException;
 
-    public void setBooks(Collection<Book> books);
+    void setBooks(Collection<Book> books);
 
     void addBook(@NotNull Book bookToAdd) throws IndexOutOfBoundsException;
 

@@ -1,6 +1,6 @@
 package library.with.tests;
+
 import lombok.Data;
-import lombok.NonNull;
 
 @Data
 public class Author {

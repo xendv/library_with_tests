@@ -2,6 +2,7 @@ package library.with.tests;
 
 import com.google.inject.Inject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 public class LibraryFactory {
     @Inject
@@ -9,11 +10,11 @@ public class LibraryFactory {
     Library library;
 
     public Library library (int capacity){
-        //library = new Library(capacity);
         return library;
     }
-    public Library emptyLibrary (int capacity){
-        library = new Library(capacity, true);
+
+    @TestOnly
+    public Library createdLibrary(){
         return library;
     }
 }

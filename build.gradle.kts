@@ -41,8 +41,6 @@ dependencies {
     // modules
     implementation(project(":models"))
     implementation(project(":controller"))
-    //testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-    //testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
 tasks.getByName<Test>("test") {
@@ -56,6 +54,7 @@ tasks.jar {
     configurations["compileClasspath"].forEach { file: File ->
         from(zipTree(file.absoluteFile))
     }
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 task<JavaExec>("execute") {

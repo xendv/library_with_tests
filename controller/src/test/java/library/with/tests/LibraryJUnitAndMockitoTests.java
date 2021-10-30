@@ -6,53 +6,75 @@ import com.google.inject.Injector;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 
-//@RunWith(Parameterized.class)
 public class LibraryJUnitAndMockitoTests {
     static Injector injector;
-    @Mock
-    private Library library;
 
-    //@Spy
-    //final LibraryFactory libraryFactory = new LibraryFactory();
+    static Library library;
 
     @Mock
-    private BooksFactory booksFactory;
+    static private BooksFactory booksFactory;
 
     @Before
     public void before() {
         MockitoAnnotations.initMocks(this);
     }
 
-    @BeforeClass
-    public static void beforeClass(){
+    // Библиотека бросает исключение при создании,
+    // если ее вместимость меньше чем количество книг,
+    // возвращаемое фабрикой
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testThrowIndexOutOfBoundsException() {
+        injector = Guice.createInjector(new LibraryModule(2));
 
+        Mockito.when(booksFactory.books()).thenReturn(dataForTest());
+
+        library = injector.getInstance(LibraryFactory.class).library(2);
+
+        library.setBooks(booksFactory.books());
     }
 
-    public static @NotNull
-    Collection<Book> data1ForTest() {
-        return new ArrayList<Book>() {
-            {
-                add(new Book(new Author("A0"), "Book0"));
-                add(new Book(new Author("A1"), "Book1"));
-                add(new Book(new Author("A2"), "Book2"));
+    // Если при добавлении книги свободных ячеек нет,
+    // библиотека бросает исключение
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void noAvailableSpaceInLibraryTest(){
+        injector = Guice.createInjector(new LibraryModule(3));
+        Library library = injector.getInstance(LibraryFactory.class).createdLibrary();
+        Mockito.when(booksFactory.books()).thenReturn(dataForTest());
+        library.setBooks(booksFactory.books());
 
-            }
-        };
+        library.addBook(new Book(new Author(""),""));
     }
+
+    //При добавлении книги она размещается в первой свободной ячейке
+    @Test
+    public void addBookTest(){
+        injector = Guice.createInjector(new LibraryModule(4));
+        Library library = injector.getInstance(LibraryFactory.class).createdLibrary();
+
+        Mockito.when(booksFactory.books()).thenReturn(dataWithEmptyCell());
+        library.setBooks(booksFactory.books());
+
+        library.addBook(new Book(new Author("A4"), "Book4"));
+        assertArrayEquals(addBookTestResult().toArray(), library.getBooks());
+    }
+
+    // Данные для Mock-объекта:
+
     public static @NotNull
     List<Book> dataForTest() {
         Book[] b = {new Book(new Author("A0"), "Book0"),
@@ -60,26 +82,6 @@ public class LibraryJUnitAndMockitoTests {
                 new Book(new Author("A2"), "Book2")};
         return List.of(b);
     }
-    public static @NotNull
-    List<Book> dataWithNulls() {
-        Book[] b = {new Book(new Author("A0"), "Book0"),
-                new Book(new Author("A1"), "Book1"),
-                new Book(new Author("A2"), "Book2"),
-                null,
-                null};
-        return Arrays.asList(b);
-    }
-    /*Collection<Book> dataWithNulls() {
-        return new ArrayList<Book>() {
-            {
-                add(new Book(new Author("A0"), "Book0"));
-                add(new Book(new Author("A1"), "Book1"));
-                add(new Book(new Author("A2"), "Book2"));
-                add(null);
-                add(null);
-            }
-        };
-    }*/
 
     public static @NotNull
     Collection<Book> dataWithEmptyCell() {
@@ -93,42 +95,14 @@ public class LibraryJUnitAndMockitoTests {
         };
     }
 
-    @Test(expected = IndexOutOfBoundsException.class)
-    public void testThrowIndexOutOfBoundsException() {
-        //libraryFactory = new LibraryFactory();
-        injector = Guice.createInjector(new LibraryModule(2));
-
-        Mockito.when(booksFactory.books()).thenReturn(dataForTest());
-
-        library = injector.getInstance(LibraryFactory.class).library(2);
-
-        library.setBooks(booksFactory.books());
+    public static @NotNull
+    List<Book> addBookTestResult(){
+        Book[] b = {new Book(new Author("A0"), "Book0"),
+                new Book(new Author("A1"), "Book1"),
+                new Book(new Author("A4"), "Book4"),
+                new Book(new Author("A2"), "Book2")};
+        return Arrays.asList(b);
     }
-
-    @Test(expected = NoSuchElementException.class)
-    public void libTakeNothingTest() {
-        //injector = Guice.createInjector(new LibraryModule(CAPACITY));
-        injector = Guice.createInjector(new LibraryModule(5));
-        Mockito.when(booksFactory.books()).thenReturn(dataWithEmptyCell());
-
-        Library lib = injector.getInstance(LibraryFactory.class).library(5);
-
-        lib.setBooks(booksFactory.books());
-        lib.getBook(2);
-    }
-
-    @Test
-    public void libCreationBooksOrderTest() {
-        injector = Guice.createInjector(new LibraryModule(5));
-        Mockito.when(booksFactory.books()).thenReturn(dataForTest());
-
-        Library lib = injector.getInstance(LibraryFactory.class).library(5);
-
-        lib.setBooks(booksFactory.books());
-
-        assertThat(lib.getBooks(), arrayContaining(dataWithNulls()));
-    }
-
 
     @After
     public void after() {
